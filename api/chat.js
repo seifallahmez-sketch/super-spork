@@ -1,4 +1,4 @@
-api/chat.js
+
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
     return res.status(405).json({
@@ -10,7 +10,7 @@ module.exports = async (req, res) => {
 
   if (!apiKey) {
     return res.status(500).json({
-      error: "AI is not configured yet. Add OPENAI_API_KEY in Vercel settings."
+      error: "OPENAI_API_KEY is missing in Vercel."
     });
   }
 
@@ -45,7 +45,7 @@ module.exports = async (req, res) => {
         body: JSON.stringify({
           model: "gpt-4o-mini",
           messages: safeMessages,
-          max_tokens: 1500
+          max_tokens: 1000
         })
       }
     );
@@ -53,24 +53,22 @@ module.exports = async (req, res) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("AI provider error:", data.error?.message);
+      console.error("OpenAI error:", data.error?.message);
 
       return res.status(502).json({
-        error: "The AI service could not answer. Check your API setup."
+        error: "The AI service failed. Check your API key and API billing."
       });
     }
 
     return res.status(200).json({
-      reply:
-        data.choices?.[0]?.message?.content ||
+      reply: data.choices?.[0]?.message?.content ||
         "Sorry, I couldn't generate a reply."
     });
   } catch (error) {
     console.error("Chat endpoint error:", error.message);
 
     return res.status(500).json({
-      error: "Something went wrong. Please try again."
+      error: "The server encountered an error. Please try again."
     });
   }
 };
-
